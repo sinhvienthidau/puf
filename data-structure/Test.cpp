@@ -1,15 +1,17 @@
 #include <iostream>
-#include "LinkedList.h"
+#include "Stack.h"
 
 using namespace std;
 
 int main() {
-  LinkedList<int> linkedList;
-  linkedList.insert(7);
-  linkedList.insert(5);
-  linkedList.insert(8);
+  Stack<int> stack;
+  stack.push(7);
+  stack.push(5);
 
-  cout << linkedList.get(2);
+  cout << stack.pop();
+  cout << stack.pop();
+
+  cout << stack.empty();
 
   cin.get();
 
