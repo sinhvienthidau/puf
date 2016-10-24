@@ -7,17 +7,13 @@ int main() {
   Stack<int> stack;
   stack.push(7);
   stack.push(5);
-  stack.push(18);
-  stack.push(3);
-  stack.push(9);
-  stack.push(1);
-  stack.push(20);
 
-  stack.sort();
+  cout << stack.pop();
+  cout << stack.pop();
 
-  while(!stack.empty()) {
-    cout << stack.pop() << " ";
-  }
+  cout << stack.empty();
+
+  cin.get();
 
   return 0;
 }
