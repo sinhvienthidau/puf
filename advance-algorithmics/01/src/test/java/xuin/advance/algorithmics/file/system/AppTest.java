@@ -2,9 +2,9 @@ package xuin.advance.algorithmics.file.system;
 
 import org.junit.Test;
 
-public class ClubManagementTest {
+public class AppTest {
     @Test
-    public void test() {
+    public void testClub() {
         ClubManagement management = new ClubManagement();
 
         management.add("MAN");
@@ -22,6 +22,17 @@ public class ClubManagementTest {
         System.out.println(management.toString());
 
         management.defragment();
+
+        System.out.println(management.toString());
+    }
+
+    @Test
+    public void testPlayer() {
+        PlayerManagement management = new PlayerManagement();
+
+        management.add("RAE", "Carlos");
+        management.add("RAE", "Ramos");
+        management.add("RAE", "Garath Bale");
 
         System.out.println(management.toString());
     }

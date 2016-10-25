@@ -1,9 +1,12 @@
 package xuin.advance.algorithmics.file.system;
 
-public class ClubManagement {
-    private static final String EMPTY_POSITION = "-1";
-    private static final char DELETE_INDICATOR = '?';
-    private static final int START_CONTENT = 2;
+/**
+ * Management Club.
+ * 
+ * @author phong.nguyen
+ *
+ */
+public class ClubManagement extends AbstractManagement {
     private static final int BLOCK = 3;
 
     // assume that there is less than 100 clubs in the file system.
@@ -14,8 +17,8 @@ public class ClubManagement {
     // if content starts with ? that mean this record was being deleted, and
     // 2 chars follow indicated that the next deleted record position was stored.
     // otherwise it will contains 3 chars of club name.
-    private StringBuilder data = new StringBuilder(EMPTY_POSITION);
 
+    @Override
     public void add(String club) {
         if (find(club) == -1) {
             int root = root();
@@ -25,7 +28,7 @@ public class ClubManagement {
             } else {
                 // the number which store to indicate the delete position is index,
                 // transform index to real position in file system
-                int position = START_CONTENT + root * 3;
+                int position = startLocation() + root * 3;
                 // link root to next delete record.
                 data.replace(0, 2, data.substring(position + 1, position + BLOCK));
                 // overwrite the data to delete record.
@@ -34,11 +37,12 @@ public class ClubManagement {
         }
     }
 
+    @Override
     public void delete(String club) {
         int record = find(club);
         if (record != -1) {
             // transform index to position.
-            int position = START_CONTENT + record * 3;
+            int position = startLocation() + record * 3;
             // update root point to new deleted record.
             data.replace(position, position + BLOCK, DELETE_INDICATOR + data.substring(0, 2));
             // keep the link to next delete record.
@@ -46,10 +50,11 @@ public class ClubManagement {
         }
     }
 
+    @Override
     public void defragment() {
         // reset root to null.
-        data.replace(0, 2, EMPTY_POSITION);
-        for (int i = START_CONTENT; i < data.length(); i = i + BLOCK) {
+        data.replace(0, 2, emptyPattern());
+        for (int i = startLocation(); i < data.length(); i = i + BLOCK) {
             if (DELETE_INDICATOR == data.charAt(i)) {
                 // this step in this sample will run very fast, because it on memory
                 // in fact, for the file system this step take very long time to shift
@@ -62,7 +67,7 @@ public class ClubManagement {
     }
 
     private int find(String club) {
-        for (int i = START_CONTENT; i < data.length(); i = i + BLOCK) {
+        for (int i = startLocation(); i < data.length(); i = i + BLOCK) {
             if (DELETE_INDICATOR != data.charAt(i)) {
                 if (data.subSequence(i, i + BLOCK).equals(club)) {
                     // return the index of block instead of the position
@@ -70,7 +75,7 @@ public class ClubManagement {
                     // when we need to used it.
                     // keeping the index will save more memory, in case of fixed
                     // length then it more efficiency.
-                    return (i - START_CONTENT) / BLOCK;
+                    return (i - startLocation()) / BLOCK;
                 }
             }
         }
@@ -78,12 +83,8 @@ public class ClubManagement {
         return -1;
     }
 
-    private int root() {
-        return Integer.parseInt(data.subSequence(0, START_CONTENT).toString());
-    }
-
     @Override
-    public String toString() {
-        return data.toString();
+    protected String emptyPattern() {
+        return "-1";
     }
 }
