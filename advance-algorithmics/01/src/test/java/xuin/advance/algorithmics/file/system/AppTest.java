@@ -8,32 +8,67 @@ public class AppTest {
         ClubManagement management = new ClubManagement();
 
         management.add("MAN");
-        management.add("CHE");
-        management.add("HUK");
-        management.add("LEI");
+		management.add("CHE");
+		management.add("HUK");
+		management.add("LEI");
 
-        management.delete("CHE");
-        management.delete("MAN");
+		management.delete("CHE");
+		management.delete("MAN");
 
-        management.add("STO");
+		management.add("STO");
 
-        management.delete("STO");
-
-        System.out.println(management.toString());
-
-        management.defragment();
+		management.delete("STO");
 
         System.out.println(management.toString());
+
+		management.defragment();
+
+		System.out.println(management.toString());
     }
 
     @Test
     public void testPlayer() {
-        PlayerManagement management = new PlayerManagement();
+		ClubManagement club = new ClubManagement();
+		PlayerManagement player = new PlayerManagement();
+		player.setClub(club);
+		club.setPlayer(player);
 
-        management.add("RAE", "Carlos");
-        management.add("RAE", "Ramos");
-        management.add("RAE", "Garath Bale");
+		club.add("MAN");
+		club.add("CHE");
+		club.add("HUK");
+		club.add("LEI");
 
-        System.out.println(management.toString());
+		club.delete("CHE");
+
+		System.out.println(club.toString());
+
+		player.add("MAN", "Rooney");
+		player.add("MAN", "Ramos");
+		player.add("MAN", "Garath Bale");
+
+		System.out.println(club.toString());
+        System.out.println(player.toString());
+
+		player.delete("MAN", "Ramos");
+
+		System.out.println(club.toString());
+		System.out.println(player.toString());
+
+		player.delete("MAN", "Garath Bale");
+
+		System.out.println(club.toString());
+		System.out.println(player.toString());
+
+		player.add("MAN", "Owen");
+		player.add("MAN", "Ibrahamovic");
+		player.delete("MAN", "Owen");
+
+		System.out.println(club.toString());
+		System.out.println(player.toString());
+
+		club.delete("MAN");
+
+		System.out.println(club.toString());
+		System.out.println(player.toString());
     }
 }

@@ -7,84 +7,100 @@ package xuin.advance.algorithmics.file.system;
  *
  */
 public class ClubManagement extends AbstractManagement {
-    private static final int BLOCK = 3;
+	private static final String FORMAT_3DIGITS = "%03d";
+	private static final int BLOCK = 8;
 
-    // assume that there is less than 100 clubs in the file system.
-    // assume that each club will be stored as 3 chars.
-    // this data represent for a file system.
-    // - it starts with 2 chars which indicated where latest deleted position.
-    // - each 3 chars follows is the content of club.
-    // if content starts with ? that mean this record was being deleted, and
-    // 2 chars follow indicated that the next deleted record position was stored.
-    // otherwise it will contains 3 chars of club name.
+	private PlayerManagement player;
 
-    @Override
+	// {meta.data}
+	// [root of deleted element]{[content block]}
+	//
+	// [root of deleted element]: pattern X{3}, 3 digits depict location of root deleted element.
+	// 000 indicates that there is no more deleted record in file.
+	// [content block]: using 8 digits
+	// pattern 1: +XXXYYYY depict a visible record. X{3} club annotation, Y{4} root element of this
+	// club in player file.
+	// pattern 2: -XXXYYYY depict a deleted record. X{3} is 3 digits of next deleted record, Y{4}
+	// remain spare spaces, this information is waste spaces, but we need to keep this information
+	// to ensure the length of block is fixed length.
+
     public void add(String club) {
-        if (find(club) == -1) {
+		if (find(club)[0] == 0) {
             int root = root();
-            if (root == -1) {
+			String content = VISIBLE_INDICATOR + club + player.emptyPattern();
+			if (root == 0) {
                 // in case don't have any deleted record yet, append new record into the end.
-                data.append(club);
+				data.append(content);
             } else {
-                // the number which store to indicate the delete position is index,
-                // transform index to real position in file system
-                int position = startLocation() + root * 3;
-                // link root to next delete record.
-                data.replace(0, 2, data.substring(position + 1, position + BLOCK));
-                // overwrite the data to delete record.
-                data.replace(position, position + BLOCK, club);
+				// overwrite record
+				data.replace(0, 3, data.substring(root + 1, root + 4));
+				data.replace(root, root + BLOCK, content);
             }
         }
     }
 
-    @Override
     public void delete(String club) {
-        int record = find(club);
-        if (record != -1) {
-            // transform index to position.
-            int position = startLocation() + record * 3;
-            // update root point to new deleted record.
-            data.replace(position, position + BLOCK, DELETE_INDICATOR + data.substring(0, 2));
-            // keep the link to next delete record.
-            data.replace(0, 2, String.format("%02d", record));
-        }
+		int found = find(club)[0];
+		if (found != 0) {
+			data.setCharAt(found, DELETED_INDICATOR);
+
+			int position = Integer.parseInt(data.substring(found + 4, found + 8));
+			data.replace(found + 1, found + 4, String.format(FORMAT_3DIGITS, root()));
+			data.replace(found + 4, found + 8, player.emptyPattern());
+			data.replace(0, 3, String.format(FORMAT_3DIGITS, found));
+
+			// delete all player belong to a club, by passing root node to delete entire linked
+			// list.
+			player.deletes(position);
+		}
     }
 
-    @Override
     public void defragment() {
         // reset root to null.
-        data.replace(0, 2, emptyPattern());
+		data.replace(0, 3, emptyPattern());
         for (int i = startLocation(); i < data.length(); i = i + BLOCK) {
-            if (DELETE_INDICATOR == data.charAt(i)) {
+            if (DELETED_INDICATOR == data.charAt(i)) {
                 // this step in this sample will run very fast, because it on memory
                 // in fact, for the file system this step take very long time to shift
                 // memory to the new position.
                 data.replace(i, i + BLOCK, "");
-                // after remove 3 chars, reset the counter.
-                i = i - 3;
+				// after remove record, reset the counter.
+				i = i - BLOCK;
             }
         }
     }
 
-    private int find(String club) {
-        for (int i = startLocation(); i < data.length(); i = i + BLOCK) {
-            if (DELETE_INDICATOR != data.charAt(i)) {
-                if (data.subSequence(i, i + BLOCK).equals(club)) {
-                    // return the index of block instead of the position
-                    // because we surely able to calculate this position again
-                    // when we need to used it.
-                    // keeping the index will save more memory, in case of fixed
-                    // length then it more efficiency.
-                    return (i - startLocation()) / BLOCK;
+	public int[] find(String club) {
+		// 0: position of club in club file.
+		// 1: position of root club in player file.
+		int[] positions = new int[2];
+		positions[0] = 0;
+		positions[0] = 0;
+
+		for (int i = startLocation(); i < data.length(); i = i + BLOCK) {
+            if (DELETED_INDICATOR != data.charAt(i)) {
+				if (data.subSequence(i + 1, i + 4).equals(club)) {
+					positions[0] = i;
+					positions[1] = Integer.parseInt(data.substring(i + 4, i + 8));
+					return positions;
                 }
             }
         }
-        // in case doesn't found record.
-        return -1;
+
+		return positions;
     }
+
+	public void updateClubRoot(int index, int position) {
+		data.replace(index + 4, index + 8, String.format("%04d", position));
+	}
 
     @Override
     protected String emptyPattern() {
-        return "-1";
+		return "000";
     }
+
+	public void setPlayer(PlayerManagement player) {
+		this.player = player;
+	}
+
 }
