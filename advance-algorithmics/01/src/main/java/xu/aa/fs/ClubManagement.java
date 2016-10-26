@@ -56,6 +56,8 @@ public class ClubManagement extends AbstractManagement {
             // delete all player belong to a club, by passing root node to delete entire linked
             // list.
             player.deletes(position);
+
+			gui.printf(Main.ALL_VIEW);
         }
     }
 
