@@ -17,8 +17,8 @@ import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JTextArea;
 
-import xu.aa.fs.ClubManagement;
-import xu.aa.fs.PlayerManagement;
+import xu.aa.fs.ClubFileSystem;
+import xu.aa.fs.PlayerFileSystem;
 
 public class Main extends JFrame {
     private static final long serialVersionUID = 1612571196676580081L;
@@ -31,8 +31,8 @@ public class Main extends JFrame {
 	private Map<String, List<String>> playerMap = new HashMap<>();
 
     // file system
-    private ClubManagement club = new ClubManagement();
-    private PlayerManagement player = new PlayerManagement();
+    private ClubFileSystem club = new ClubFileSystem();
+    private PlayerFileSystem player = new PlayerFileSystem();
 
     // Menu
     private JMenuBar menubar = new JMenuBar();
@@ -48,12 +48,6 @@ public class Main extends JFrame {
     private JTextArea playerConsole = new JTextArea("Player File System");
 
     public Main() {
-        // initialize file system
-        club.setPlayer(player);
-        club.setGui(this);
-        player.setClub(club);
-        player.setGui(this);
-
 		/*
 		 * Menus.
 		 */

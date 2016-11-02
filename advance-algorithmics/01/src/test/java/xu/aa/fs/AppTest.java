@@ -2,39 +2,10 @@ package xu.aa.fs;
 
 import org.junit.Test;
 
-import xu.aa.fs.ClubManagement;
-import xu.aa.fs.PlayerManagement;
-
 public class AppTest {
     @Test
     public void testClub() {
-        ClubManagement management = new ClubManagement();
-
-        management.add("MAN");
-        management.add("CHE");
-        management.add("HUK");
-        management.add("LEI");
-
-        management.delete("CHE");
-        management.delete("MAN");
-
-        management.add("STO");
-
-        management.delete("STO");
-
-        System.out.println(management.toString());
-
-        management.defragment();
-
-        System.out.println(management.toString());
-    }
-
-    @Test
-    public void testPlayer() {
-        ClubManagement club = new ClubManagement();
-        PlayerManagement player = new PlayerManagement();
-        player.setClub(club);
-        club.setPlayer(player);
+        ClubFileSystem club = new ClubFileSystem();
 
         club.add("MAN");
         club.add("CHE");
@@ -42,36 +13,18 @@ public class AppTest {
         club.add("LEI");
 
         club.delete("CHE");
-
-        System.out.println(club.toString());
-
-        player.add("MAN", "Rooney");
-        player.add("MAN", "Ramos");
-        player.add("MAN", "Garath Bale");
-
-        System.out.println(club.toString());
-        System.out.println(player.toString());
-
-        player.delete("MAN", "Ramos");
-
-        System.out.println(club.toString());
-        System.out.println(player.toString());
-
-        player.delete("MAN", "Garath Bale");
-
-        System.out.println(club.toString());
-        System.out.println(player.toString());
-
-        player.add("MAN", "Owen");
-        player.add("MAN", "Ibrahamovic");
-        player.delete("MAN", "Owen");
-
-        System.out.println(club.toString());
-        System.out.println(player.toString());
-
         club.delete("MAN");
 
+        club.add("STO");
+
         System.out.println(club.toString());
-        System.out.println(player.toString());
+
+		club.defrag();
+
+		System.out.println(club.toString());
+    }
+
+    @Test
+    public void testPlayer() {
     }
 }
