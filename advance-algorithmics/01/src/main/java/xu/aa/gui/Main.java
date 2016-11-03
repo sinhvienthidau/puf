@@ -17,8 +17,10 @@ import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JTextArea;
 
-import xu.aa.fs.ClubFileSystem;
-import xu.aa.fs.PlayerFileSystem;
+import xu.aa.fs.AbstractFileSystem;
+import xu.aa.fs.FixedLengthBlock;
+import xu.aa.fs.FixedLengthFileSystem;
+import xu.aa.fs.VariableLengthFileSystem;
 
 public class Main extends JFrame {
     private static final long serialVersionUID = 1612571196676580081L;
@@ -31,8 +33,8 @@ public class Main extends JFrame {
 	private Map<String, List<String>> playerMap = new HashMap<>();
 
     // file system
-    private ClubFileSystem club = new ClubFileSystem();
-    private PlayerFileSystem player = new PlayerFileSystem();
+    private AbstractFileSystem<FixedLengthBlock> club = new FixedLengthFileSystem();
+    private VariableLengthFileSystem player = new VariableLengthFileSystem();
 
     // Menu
     private JMenuBar menubar = new JMenuBar();

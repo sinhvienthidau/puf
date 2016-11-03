@@ -5,7 +5,7 @@ import org.junit.Test;
 public class AppTest {
     @Test
     public void testClub() {
-        ClubFileSystem club = new ClubFileSystem();
+        AbstractFileSystem<FixedLengthBlock> club = new FixedLengthFileSystem();
 
         club.add("MAN");
         club.add("CHE");
@@ -26,27 +26,21 @@ public class AppTest {
 
     @Test
     public void testPlayer() {
-        ClubFileSystem club = new ClubFileSystem();
+		AbstractFileSystem<VaraiableLengthBlock> player = new VariableLengthFileSystem();
+		player.add("Xavier Heznades");
+		player.add("Wayner Rooney");
+		player.add("Cistiano Ronaldo");
+		player.add("Hoe Hart");
 
-        club.add("MAN");
-        club.add("CHE");
-        club.add("HUK");
-        club.add("LEI");
+		player.delete("Xavier Heznades");
+		player.delete("Cistiano Ronaldo");
 
-        club.delete("CHE");
-        club.delete("MAN");
+		player.add("Gareth Bale");
 
-        club.add("STO");
+		System.out.println(player.toString());
 
-        PlayerFileSystem player = new PlayerFileSystem();
-        player.setClubFileSystem(club);
+		player.defrag();
 
-        player.add("STO", "Cristiano Ronaldo");
-        player.add("STO", "Xavier Hexnades");
-
-        player.delete("STO", "Cristiano Ronaldo");
-
-        System.out.println(club.toString());
-        System.out.println(player.toString());
+		System.out.println(player.toString());
     }
 }
