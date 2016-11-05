@@ -2,6 +2,7 @@ package xuin.aa.gui;
 
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Font;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -38,6 +39,7 @@ public class Main extends JFrame {
     private JMenuBar menubar = new JMenuBar();
     private JMenu commandMenu = new JMenu("Command");
     private JMenuItem commandReset = new JMenuItem("Reset");
+    private JMenuItem commandDefrag = new JMenuItem("Defragment");
     private JMenuItem commandClose = new JMenuItem("Close");
 
     private JMenu clubMenu = new JMenu("Club");
@@ -48,6 +50,7 @@ public class Main extends JFrame {
     private JMenu playerMenu = new JMenu("Player");
     private JMenuItem playerNew = new JMenuItem("New");
     private JMenuItem playerDelete = new JMenuItem("Delete");
+    private JMenuItem playerTransfer = new JMenuItem("Transfer");
     private JMenuItem playerDefrag = new JMenuItem("Defragment");
 
     // console
@@ -100,6 +103,21 @@ public class Main extends JFrame {
             }
         });
         commandMenu.add(commandReset);
+
+        commandDefrag.addActionListener(new ActionListener() {
+
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                try {
+                    playerFileSystem.defrag();
+                    clubFileSystem.defrag();
+                    printf(ALL_VIEW);
+                } catch (IOException e1) {
+                    e1.printStackTrace();
+                }
+            }
+        });
+        commandMenu.add(commandDefrag);
 
         commandClose.addActionListener(new ActionListener() {
             @Override
@@ -248,6 +266,50 @@ public class Main extends JFrame {
         });
         playerMenu.add(playerDelete);
 
+        playerTransfer.addActionListener(new ActionListener() {
+
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                CustomDialog dialog = new CustomDialog(2);
+                dialog.setClubFileSystem(clubFileSystem);
+
+                try {
+                    for (String item : clubFileSystem.getClubs()) {
+                        dialog.getClubs().addItem(item);
+                        dialog.getTransferClubs().addItem(item);
+                    }
+                } catch (IOException e2) {
+                    e2.printStackTrace();
+                }
+
+                Component source = (Component) e.getSource();
+                int response = JOptionPane.showConfirmDialog(source, dialog, "Input Confirmation",
+                        JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE, null);
+
+                if (response == JOptionPane.OK_OPTION) {
+                    String name = (String) dialog.getPlayers().getSelectedItem();
+                    String fromClub = (String) dialog.getClubs().getSelectedItem();
+                    String toClub = (String) dialog.getTransferClubs().getSelectedItem();
+
+                    if (StringUtils.isNotEmpty(name) && StringUtils.isNotEmpty(fromClub)
+                            && StringUtils.isNotEmpty(toClub)) {
+                        if (fromClub.equals(toClub)) {
+                            console(PLAYER_VIEW, "Same club to transfer");
+                            return;
+                        }
+
+                        try {
+                            playerFileSystem.transfer(name, fromClub, toClub);
+                            printf(ALL_VIEW);
+                        } catch (IOException e1) {
+                            e1.printStackTrace();
+                        }
+                    }
+                }
+            }
+        });
+        playerMenu.add(playerTransfer);
+
         playerDefrag.addActionListener(new ActionListener() {
 
             @Override
@@ -270,16 +332,20 @@ public class Main extends JFrame {
          * Consoles.
          */
 
+        Font f = new Font(Font.SANS_SERIF, 3, 16);
+
         clubConsole.setBackground(Color.BLACK);
         clubConsole.setForeground(Color.RED);
         clubConsole.setEditable(false);
         clubConsole.setLineWrap(true);
+        clubConsole.setFont(f);
         add(clubConsole);
 
         playerConsole.setBackground(Color.BLACK);
         playerConsole.setForeground(Color.RED);
         playerConsole.setEditable(false);
         playerConsole.setLineWrap(true);
+        playerConsole.setFont(f);
         add(playerConsole);
 
         setSize(1200, 600);
@@ -302,8 +368,9 @@ public class Main extends JFrame {
 
     public void console(int view, String msg) {
         if (view == CLUB_VIEW) {
-            clubConsole.setText(clubConsole.getText() + "\n\n" + msg + ": ");
-            clubConsole.setText(clubConsole.getText() + "\n" + clubFileSystem.toString());
+            clubConsole.setText(clubConsole.getText() + "\n\n" + msg + "! ");
+        } else if (view == PLAYER_VIEW) {
+            playerConsole.setText(playerConsole.getText() + "\n\n" + msg + "! ");
         }
     }
 

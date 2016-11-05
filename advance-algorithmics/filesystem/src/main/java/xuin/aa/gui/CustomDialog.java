@@ -20,10 +20,13 @@ public class CustomDialog extends JPanel {
     private JComboBox<String> players;
     private ClubFileSystem clubFileSystem;
 
+    private JComboBox<String> transferClubs;
+
     public CustomDialog(int mode) {
         playerName = new JTextField();
         clubs = new JComboBox<>();
         players = new JComboBox<>();
+        transferClubs = new JComboBox<>();
 
         clubs.addItemListener(new ItemListener() {
 
@@ -49,6 +52,10 @@ public class CustomDialog extends JPanel {
         } else if (mode == 1) {
             add(clubs);
             add(players);
+        } else if (mode == 2) {
+            add(players);
+            add(clubs);
+            add(transferClubs);
         }
     }
 
@@ -82,6 +89,14 @@ public class CustomDialog extends JPanel {
 
     public void setClubFileSystem(ClubFileSystem clubFileSystem) {
         this.clubFileSystem = clubFileSystem;
+    }
+
+    public JComboBox<String> getTransferClubs() {
+        return transferClubs;
+    }
+
+    public void setTransferClubs(JComboBox<String> transferClubs) {
+        this.transferClubs = transferClubs;
     }
 
 }

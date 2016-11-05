@@ -224,8 +224,26 @@ public class PlayerFileSystem extends FileSystem {
         }
     }
 
-    public void transfer(String name, String fromClub, String toClub) {
+    public void transfer(String name, String fromClub, String toClub) throws FileNotFoundException, IOException {
+        ClubBlock fromClubBlock = clubFileSystem.find(fromClub);
+        ClubBlock toClubBlock = clubFileSystem.find(toClub);
+        if (fromClubBlock != null && toClubBlock != null) {
+            PlayerBlock playerBlock = find(fromClubBlock.getRootPlayerIndex(), name);
+            if (playerBlock.getPreviousIndex() == NOT_EXIST_NEXT_BLOCK) {
+                clubFileSystem.updatePlayerRoot(fromClub, playerBlock.getNextClubPlayerIndex());
+            } else {
+                PlayerBlock previousBlock = PlayerBlock.fromBytes(getBlock(playerBlock.getPreviousIndex()),
+                        playerBlock.getPreviousIndex());
+                previousBlock.setNextClubPlayerIndex(playerBlock.getNextClubPlayerIndex());
 
+                write(previousBlock.getOffset(), previousBlock.toBytes());
+            }
+
+            playerBlock.setNextClubPlayerIndex(toClubBlock.getRootPlayerIndex());
+            write(playerBlock.getOffset(), playerBlock.toBytes());
+
+            clubFileSystem.updatePlayerRoot(toClub, playerBlock.getOffset());
+        }
     }
 
     public PlayerBlock find(int rootPlayerIndex, String name) throws FileNotFoundException, IOException {
