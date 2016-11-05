@@ -9,15 +9,31 @@ import org.apache.commons.lang3.StringUtils;
 import xuin.aa.block.ClubBlock;
 import xuin.aa.block.PlayerBlock;
 
+/**
+ * manage player.bin file.
+ * 
+ * @author phong.nguyen
+ */
 public class PlayerFileSystem extends FileSystem {
-    public static final char FRAGMENT_INDICATOR = '*';
-
     private ClubFileSystem clubFileSystem;
+
+    private int fitMode = 0; // 0: first fit, 1: best fit.
 
     public PlayerFileSystem(String path) throws FileNotFoundException, IOException {
         super(path);
     }
 
+    /**
+     * add a player in to a club.
+     * 
+     * @param club
+     *            club name: if club name don't exist in club.bin, nothing happen.
+     * @param name
+     *            player name: if player name already exist in player.bin with same club, nothing
+     *            happen.
+     * @throws FileNotFoundException
+     * @throws IOException
+     */
     public void add(String club, String name) throws FileNotFoundException, IOException {
         ClubBlock clubBlock = clubFileSystem.find(club);
         if (clubBlock != null) {
@@ -25,12 +41,19 @@ public class PlayerFileSystem extends FileSystem {
             if (playerBlock == null) {
                 int deletedRecordRoot = getDeletedRecordRoot();
 
+                // if exist deleted record, detect the fit of record to store new player name.
                 PlayerBlock deletedBlock = null;
                 if (NOT_EXIST_DELETED_BLOCK != deletedRecordRoot) {
-                    deletedBlock = getFirstFitBlock(name);
+                    if (fitMode == 0) {
+                        deletedBlock = getFirstFitBlock(name);
+                    } else if (fitMode == 1) {
+                        deletedBlock = getBestFitBlock(name);
+                    }
                 }
 
                 if (deletedBlock == null) {
+                    // in case don't have any place to overwrite then append new block at the end of
+                    // file.
                     PlayerBlock block = new PlayerBlock();
                     block.setData(name);
                     block.setLength(name.length());
@@ -41,11 +64,12 @@ public class PlayerFileSystem extends FileSystem {
 
                     append(block.toBytes());
                 } else {
+                    // exist deleted record to overwrite then overwrite it.
                     deletedBlock.setDeleted(false);
                     deletedBlock.setData(name);
                     deletedBlock.setNextClubPlayerIndex(clubBlock.getRootPlayerIndex());
 
-                    if (deletedBlock.getPreviousIndex() == -1) {
+                    if (deletedBlock.getPreviousIndex() == NOT_EXIST_NEXT_BLOCK) {
                         updateDeleteRecordRoot(deletedBlock.getNextDeleteIndex());
                     } else {
                         PlayerBlock previousBlock = PlayerBlock.fromBytes(getBlock(deletedBlock.getPreviousIndex()),
@@ -78,6 +102,29 @@ public class PlayerFileSystem extends FileSystem {
             root = block.getNextDeleteIndex();
         }
         return null;
+    }
+
+    private PlayerBlock getBestFitBlock(String name) throws FileNotFoundException, IOException {
+        int root = getDeletedRecordRoot();
+        int previousIndex = -1;
+        PlayerBlock bestBlock = null;
+        while (NOT_EXIST_DELETED_BLOCK != root) {
+            PlayerBlock block = PlayerBlock.fromBytes(getBlock(root), root);
+            block.setPreviousIndex(previousIndex);
+            if (block.getLength() == name.length()) {
+                return block;
+            } else if (block.getLength() > name.length()) {
+                if (bestBlock == null) {
+                    bestBlock = block;
+                } else if (bestBlock.getLength() > block.getLength()) {
+                    bestBlock = block;
+                }
+            }
+
+            previousIndex = root;
+            root = block.getNextDeleteIndex();
+        }
+        return bestBlock;
     }
 
     public void delete(String club, String name) throws FileNotFoundException, IOException {
@@ -177,6 +224,10 @@ public class PlayerFileSystem extends FileSystem {
         }
     }
 
+    public void transfer(String name, String fromClub, String toClub) {
+
+    }
+
     public PlayerBlock find(int rootPlayerIndex, String name) throws FileNotFoundException, IOException {
         int root = rootPlayerIndex;
         int previousIndex = -1;
@@ -190,6 +241,14 @@ public class PlayerFileSystem extends FileSystem {
             root = block.getNextClubPlayerIndex();
         }
         return null;
+    }
+
+    public boolean exists(String club, String name) throws FileNotFoundException, IOException {
+        ClubBlock clubBlock = clubFileSystem.find(club);
+        if (clubBlock != null) {
+            return find(clubBlock.getRootPlayerIndex(), name) != null;
+        }
+        return false;
     }
 
     public byte[] getBlock(int offset) throws FileNotFoundException, IOException {
@@ -222,5 +281,13 @@ public class PlayerFileSystem extends FileSystem {
             e.printStackTrace();
         }
         return builder.toString();
+    }
+
+    public int getFitMode() {
+        return fitMode;
+    }
+
+    public void setFitMode(int fitMode) {
+        this.fitMode = fitMode;
     }
 }

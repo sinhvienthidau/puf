@@ -2,6 +2,10 @@ package xuin.aa.fs;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+
+import org.apache.commons.lang3.StringUtils;
 
 import xuin.aa.block.AbstractBlock;
 import xuin.aa.block.ClubBlock;
@@ -28,7 +32,7 @@ public class ClubFileSystem extends FileSystem {
                 updateDeleteRecordRoot(block.getNextDeleteIndex());
                 block.setDeleted(false);
                 block.setNextDeleteIndex(NOT_EXIST_DELETED_BLOCK);
-                block.setRootPlayerIndex(NOT_EXIST_DELETED_BLOCK);
+                block.setRootPlayerIndex(NOT_EXIST_NEXT_BLOCK);
                 block.setData(name);
 
                 write(block.getOffset(), block.toBytes());
@@ -48,13 +52,13 @@ public class ClubFileSystem extends FileSystem {
                 playerFileSystem.updateDeleteRecordRoot(root);
                 root = playerBlock.getNextClubPlayerIndex();
 
-                playerBlock.setNextClubPlayerIndex(-1);
+                playerBlock.setNextClubPlayerIndex(NOT_EXIST_NEXT_BLOCK);
 
                 playerFileSystem.write(playerBlock.getOffset(), playerBlock.toBytes());
             }
 
             block.setNextDeleteIndex(getDeletedRecordRoot());
-            block.setRootPlayerIndex(-1);
+            block.setRootPlayerIndex(NOT_EXIST_NEXT_BLOCK);
             block.setDeleted(true);
             updateDeleteRecordRoot(block.getOffset());
 
@@ -92,6 +96,38 @@ public class ClubFileSystem extends FileSystem {
             }
         }
         return null;
+    }
+
+    public List<String> getClubs() throws FileNotFoundException, IOException {
+        List<String> clubs = new ArrayList<>();
+        for (int offset = Integer.BYTES; offset < file.length(); offset += ClubBlock.BYTES) {
+            ClubBlock block = ClubBlock.fromBytes(read(offset, ClubBlock.BYTES), offset);
+            if (!block.isDeleted()) {
+                clubs.add(block.getData());
+            }
+        }
+        return clubs;
+    }
+
+    public List<String> getPlayers(String name) throws FileNotFoundException, IOException {
+        List<String> players = new ArrayList<>();
+        ClubBlock block = find(name);
+        if (block != null) {
+            int root = block.getRootPlayerIndex();
+            while (NOT_EXIST_DELETED_BLOCK != root) {
+                PlayerBlock playerBlock = PlayerBlock.fromBytes(playerFileSystem.getBlock(root), root);
+                if (!playerBlock.isDeleted()) {
+                    players.add(StringUtils.remove(playerBlock.getData(), FRAGMENT_INDICATOR));
+                }
+
+                root = playerBlock.getNextClubPlayerIndex();
+            }
+        }
+        return players;
+    }
+
+    public boolean exist(String name) throws FileNotFoundException, IOException {
+        return find(name) != null;
     }
 
     @Override

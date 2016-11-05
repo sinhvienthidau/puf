@@ -9,6 +9,9 @@ import java.nio.ByteBuffer;
 
 public abstract class FileSystem {
     public static final int NOT_EXIST_DELETED_BLOCK = -1;
+    public static final int NOT_EXIST_NEXT_BLOCK = -1;
+
+    public static final char FRAGMENT_INDICATOR = '*';
 
     protected File file = null;
 
